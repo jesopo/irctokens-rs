@@ -19,3 +19,11 @@ fn basic() {
     assert_eq!(tags["tag2"], None);
     assert_eq!(tags["tag3"], None);
 }
+
+#[test]
+fn complex_tags() {
+    let line = tokenise(b"@tag1=\\:a COMMAND").unwrap();
+
+    let tags = line.tags.unwrap();
+    assert_eq!(tags["tag1"], Some(";a".to_string()));
+}

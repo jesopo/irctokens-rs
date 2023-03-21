@@ -36,6 +36,33 @@ impl<'a> TakeWord<'a> for &'a [u8] {
     }
 }
 
+fn tag_decode(value: &mut String) {
+    let mut i = 0;
+    let mut escaped = false;
+    while let Some(char) = value.chars().nth(i) {
+        if escaped {
+            escaped = false;
+            let replace = match char {
+                ':' => ';',
+                's' => ' ',
+                'r' => '\r',
+                'n' => '\n',
+                _ => char,
+            };
+
+            value.replace_range(i - 1..i, &replace.to_string());
+            value.remove(i);
+            // the above replace loses one character from the string, so no `i += 1`
+        } else {
+            // backslash
+            if char == 0x5c as char {
+                escaped = true;
+            }
+            i += 1;
+        }
+    }
+}
+
 pub fn tokenise(mut line: &[u8]) -> Result<Line, Error> {
     let tags = match line.first() {
         Some(b'@') => {
@@ -43,18 +70,20 @@ pub fn tokenise(mut line: &[u8]) -> Result<Line, Error> {
             let mut tags_map = HashMap::new();
 
             while !tags.is_empty() {
-                let mut keyvalue = tags.take_word(b';');
-                let tag = keyvalue.take_word(b'=');
-                tags_map.insert(
-                    String::from_utf8(tag.to_vec()).map_err(|_| Error::TagKeyDecode)?,
-                    match keyvalue {
-                        b"" | b"=" => None,
-                        _ => Some(
-                            String::from_utf8(keyvalue.to_vec())
-                                .map_err(|_| Error::TagValueDecode)?,
-                        ),
-                    },
-                );
+                let mut tag_key_value = tags.take_word(b';');
+                let tag_key = String::from_utf8(tag_key_value.take_word(b'=').to_vec())
+                    .map_err(|_| Error::TagKeyDecode)?;
+                let tag_value = match tag_key_value {
+                    b"" | b"=" => None,
+                    _ => {
+                        let mut tag_value = String::from_utf8(tag_key_value.to_vec())
+                            .map_err(|_| Error::TagValueDecode)?;
+                        tag_decode(&mut tag_value);
+                        Some(tag_value)
+                    }
+                };
+
+                tags_map.insert(tag_key, tag_value);
             }
 
             Some(tags_map)
