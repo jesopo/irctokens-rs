@@ -76,8 +76,8 @@ pub fn tokenise(mut line: &[u8]) -> Result<Line, Error> {
                 let tag_value = match tag_key_value {
                     b"" | b"=" => None,
                     _ => Some(
-                        String::from_utf8(tag_key_value.to_vec())
-                            .map(|v| tag_decode(&v))
+                        std::str::from_utf8(tag_key_value)
+                            .map(tag_decode)
                             .map_err(|_| Error::TagValueDecode)?,
                     ),
                 };
