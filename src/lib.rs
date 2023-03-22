@@ -38,7 +38,7 @@ impl<'a> TakeWord<'a> for &'a [u8] {
 
 fn tag_decode(input: &str) -> String {
     let mut escaped = false;
-    let mut output = String::new();
+    let mut output = String::with_capacity(input.len());
 
     for char in input.chars() {
         if escaped {
