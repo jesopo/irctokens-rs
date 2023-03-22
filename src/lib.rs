@@ -36,10 +36,11 @@ impl<'a> TakeWord<'a> for &'a [u8] {
     }
 }
 
-fn tag_decode(value: &mut String) {
-    let mut i = 0;
+fn tag_decode(input: &str) -> String {
     let mut escaped = false;
-    while let Some(char) = value.chars().nth(i) {
+    let mut output = String::new();
+
+    for char in input.chars() {
         if escaped {
             escaped = false;
             let replace = match char {
@@ -50,17 +51,16 @@ fn tag_decode(value: &mut String) {
                 _ => char,
             };
 
-            value.replace_range(i - 1..i, &replace.to_string());
-            value.remove(i);
-            // the above replace loses one character from the string, so no `i += 1`
-        } else {
+            output.push(replace);
+        } else if char == 0x5c as char {
             // backslash
-            if char == 0x5c as char {
-                escaped = true;
-            }
-            i += 1;
+            escaped = true;
+        } else {
+            output.push(char);
         }
     }
+
+    output
 }
 
 pub fn tokenise(mut line: &[u8]) -> Result<Line, Error> {
@@ -75,12 +75,11 @@ pub fn tokenise(mut line: &[u8]) -> Result<Line, Error> {
                     .map_err(|_| Error::TagKeyDecode)?;
                 let tag_value = match tag_key_value {
                     b"" | b"=" => None,
-                    _ => {
-                        let mut tag_value = String::from_utf8(tag_key_value.to_vec())
-                            .map_err(|_| Error::TagValueDecode)?;
-                        tag_decode(&mut tag_value);
-                        Some(tag_value)
-                    }
+                    _ => Some(
+                        String::from_utf8(tag_key_value.to_vec())
+                            .map(|v| tag_decode(&v))
+                            .map_err(|_| Error::TagValueDecode)?,
+                    ),
                 };
 
                 tags_map.insert(tag_key, tag_value);

@@ -22,8 +22,8 @@ fn basic() {
 
 #[test]
 fn complex_tags() {
-    let line = tokenise(b"@tag1=\\:a COMMAND").unwrap();
+    let line = tokenise(b"@tag1=a\\:a COMMAND").unwrap();
 
     let tags = line.tags.unwrap();
-    assert_eq!(tags["tag1"], Some(";a".to_string()));
+    assert_eq!(tags["tag1"], Some("a;a".to_string()));
 }
