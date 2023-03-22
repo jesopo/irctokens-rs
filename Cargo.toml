@@ -2,6 +2,12 @@
 name = "irctokens"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "RFC1459 and IRCv3 protocol tokeniser"
+homepage = "https://github.com/jesopo/irctokens-rs"
+documentation = "https://github.com/jesopo/irctokens-rs"
+repository = "https://github.com/jesopo/irctokens-rs"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

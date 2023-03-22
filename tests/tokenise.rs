@@ -1,9 +1,10 @@
-use irctokens::tokenise;
+use irctokens::Line;
 
 #[test]
 fn basic() {
     let line =
-        tokenise(b"@tag1=tag1value;tag2=;tag3 :source COMMAND arg1 arg2 :arg3 with space").unwrap();
+        Line::tokenise(b"@tag1=tag1value;tag2=;tag3 :source COMMAND arg1 arg2 :arg3 with space")
+            .unwrap();
 
     assert_eq!(line.source, Some(b"source".to_vec()));
     assert_eq!(&line.command, "COMMAND");
@@ -22,7 +23,7 @@ fn basic() {
 
 #[test]
 fn complex_tags() {
-    let line = tokenise(b"@tag1=a\\:a COMMAND").unwrap();
+    let line = Line::tokenise(b"@tag1=a\\:a COMMAND").unwrap();
 
     let tags = line.tags.unwrap();
     assert_eq!(tags["tag1"], Some("a;a".to_string()));
