@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT"
 description = "RFC1459 and IRCv3 protocol tokeniser"
 homepage = "https://github.com/jesopo/irctokens-rs"
-documentation = "https://github.com/jesopo/irctokens-rs"
+documentation = "https://docs.rs/irctokens/"
 repository = "https://github.com/jesopo/irctokens-rs"
 readme = "README.md"
 
