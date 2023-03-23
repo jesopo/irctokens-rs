@@ -19,7 +19,9 @@ fn tag_encode(input: &str) -> String {
 
 impl Line {
     #[allow(clippy::doc_markdown)]
-    /// Format `self` in to a byte string by [RFC1459] and [IRCv3] protocol rules.
+    /// Format `self` into a byte string by [RFC1459] and [IRCv3] protocol rules.
+    ///
+    /// The returned byte string is NOT suffixed with a CRLF.
     ///
     /// [RFC1459]: https://www.rfc-editor.org/rfc/rfc1459#section-2.3
     /// [IRCv3]: https://ircv3.net/specs/extensions/message-tags.html

@@ -7,15 +7,15 @@ const TAG_STOP: [&[u8]; 2] = [b"", b"="];
 
 #[derive(Debug)]
 pub enum Error {
-    /// An empty byte array was passed to the tokeniser
+    /// An empty byte array was passed to the tokeniser.
     Empty,
-    /// A line is invalid if it has no `COMMAND` (e.g. `PRIVMSG`)
+    /// A line is invalid if it has no `COMMAND` (e.g. `PRIVMSG`).
     MissingCommand,
-    /// Commands must be ascii encoded
+    /// Commands must be ascii encoded.
     CommandDecode,
-    /// Message tag keys must be utf8 encoded
+    /// Message tag keys must be utf8 encoded.
     TagKeyDecode,
-    /// Message tag values must be utf8 encoded
+    /// Message tag values must be utf8 encoded.
     TagValueDecode,
 }
 
@@ -49,6 +49,8 @@ fn tag_decode(input: &str) -> String {
 impl Line {
     #[allow(clippy::doc_markdown)]
     /// Attempt to tokenise a byte string by [RFC1459] and [IRCv3] protocol rules.
+    ///
+    /// Expects a byte string that does NOT contain a trailing CRLF.
     ///
     /// [RFC1459]: https://www.rfc-editor.org/rfc/rfc1459#section-2.3
     /// [IRCv3]: https://ircv3.net/specs/extensions/message-tags.html
@@ -102,10 +104,10 @@ impl Line {
     }
 }
 
+/// Implementation that simply calls [`Line::tokenise()`].
 impl TryFrom<&[u8]> for Line {
     type Error = Error;
 
-    /// Utility function for [`Line::tokenise()`]
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         Self::tokenise(value)
     }
