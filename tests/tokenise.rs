@@ -9,10 +9,10 @@ fn basic() {
     assert_eq!(line.source, Some(b"source".to_vec()));
     assert_eq!(&line.command, "COMMAND");
 
-    assert_eq!(line.args.len(), 3);
-    assert_eq!(line.args[0], b"arg1");
-    assert_eq!(line.args[1], b"arg2");
-    assert_eq!(line.args[2], b"arg3 with space");
+    assert_eq!(line.arguments.len(), 3);
+    assert_eq!(line.arguments[0], b"arg1");
+    assert_eq!(line.arguments[1], b"arg2");
+    assert_eq!(line.arguments[2], b"arg3 with space");
 
     let tags = line.tags.unwrap();
     assert_eq!(tags.len(), 3);

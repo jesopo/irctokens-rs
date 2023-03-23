@@ -1,9 +1,23 @@
 use std::collections::{BTreeMap, VecDeque};
 
 use super::util::TakeWord as _;
-use super::{Error, Line};
+use super::Line;
 
 const TAG_STOP: [&[u8]; 2] = [b"", b"="];
+
+#[derive(Debug)]
+pub enum Error {
+    /// An empty byte array was passed to the tokeniser
+    Empty,
+    /// A line is invalid if it has no `COMMAND` (e.g. `PRIVMSG`)
+    MissingCommand,
+    /// Commands must be ascii encoded
+    CommandDecode,
+    /// Message tag keys must be utf8 encoded
+    TagKeyDecode,
+    /// Message tag values must be utf8 encoded
+    TagValueDecode,
+}
 
 fn tag_decode(input: &str) -> String {
     let mut escaped = false;
@@ -21,7 +35,7 @@ fn tag_decode(input: &str) -> String {
             };
 
             output.push(replace);
-        } else if char == 0x5c as char {
+        } else if char == '\\' {
             // backslash
             escaped = true;
         } else {
@@ -33,6 +47,11 @@ fn tag_decode(input: &str) -> String {
 }
 
 impl Line {
+    #[allow(clippy::doc_markdown)]
+    /// Attempt to tokenise a byte string by [RFC1459] and [IRCv3] protocol rules.
+    ///
+    /// [RFC1459]: https://www.rfc-editor.org/rfc/rfc1459#section-2.3
+    /// [IRCv3]: https://ircv3.net/specs/extensions/message-tags.html
     pub fn tokenise(mut line: &[u8]) -> Result<Self, Error> {
         let tags = if line.first() == Some(&b'@') {
             let mut tags = &line.take_word(b' ')[1..];
@@ -78,7 +97,16 @@ impl Line {
             tags,
             source,
             command: String::from_utf8(command).map_err(|_| Error::CommandDecode)?,
-            args: args.into(),
+            arguments: args.into(),
         })
+    }
+}
+
+impl TryFrom<&[u8]> for Line {
+    type Error = Error;
+
+    /// Utility function for [`Line::tokenise()`]
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        Self::tokenise(value)
     }
 }

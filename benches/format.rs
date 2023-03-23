@@ -1,7 +1,6 @@
-use std::collections::BTreeMap;
 use criterion::{criterion_group, criterion_main, Criterion};
 use irctokens::Line;
-
+use std::collections::BTreeMap;
 
 fn criterion_benchmark(c: &mut Criterion) {
     let line = Line {

@@ -11,7 +11,7 @@ fn basic() {
         ])),
         source: Some(b"source".to_vec()),
         command: "COMMAND".to_string(),
-        args: Vec::from([
+        arguments: Vec::from([
             b"arg1".to_vec(),
             b"arg2".to_vec(),
             b"arg3 with space".to_vec(),

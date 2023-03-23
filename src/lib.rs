@@ -1,6 +1,6 @@
 mod format;
 mod obj;
-mod tokenise;
+pub mod tokenise;
 mod util;
 
-pub use self::obj::{Error, Line};
+pub use self::obj::Line;

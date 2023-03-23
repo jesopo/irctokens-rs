@@ -18,6 +18,12 @@ fn tag_encode(input: &str) -> String {
 }
 
 impl Line {
+    #[allow(clippy::doc_markdown)]
+    /// Format `self` in to a byte string by [RFC1459] and [IRCv3] protocol rules.
+    ///
+    /// [RFC1459]: https://www.rfc-editor.org/rfc/rfc1459#section-2.3
+    /// [IRCv3]: https://ircv3.net/specs/extensions/message-tags.html
+    #[must_use]
     pub fn format(&self) -> Vec<u8> {
         let mut output = Vec::new();
 
@@ -45,9 +51,9 @@ impl Line {
 
         output.extend_from_slice(self.command.as_bytes());
 
-        for (i, arg) in self.args.iter().enumerate() {
+        for (i, arg) in self.arguments.iter().enumerate() {
             output.push(b' ');
-            if i == self.args.len() - 1 {
+            if i == self.arguments.len() - 1 {
                 output.push(b':');
             }
             output.extend_from_slice(arg);
