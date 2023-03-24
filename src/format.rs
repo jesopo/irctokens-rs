@@ -1,23 +1,67 @@
+use std::io::Write;
+
 use super::Line;
 
-fn tag_encode(input: &str) -> String {
-    let mut output = String::with_capacity(input.len() * 2);
-
+fn tag_encode(input: &str, output: &mut (impl Write + ?Sized)) -> std::io::Result<()> {
     for char in input.chars() {
-        output.push_str(&match char {
-            ';' => "\\:".to_string(),
-            ' ' => "\\s".to_string(),
-            '\\' => "\\".to_string(),
-            '\r' => "\\r".to_string(),
-            '\n' => "\\n".to_string(),
-            _ => char.to_string(),
-        });
+        match char {
+            ';' => write!(output, "\\:")?,
+            ' ' => write!(output, "\\s")?,
+            '\\' => write!(output, "\\")?,
+            '\r' => write!(output, "\\r")?,
+            '\n' => write!(output, "\\n")?,
+            _ => write!(output, "{char}")?,
+        }
     }
-
-    output
+    Ok(())
 }
 
 impl Line {
+    #[allow(clippy::doc_markdown)]
+    /// Write `self` to `output` as a formatted byte string by [RFC1459] and [IRCV3] protocol rules.
+    ///
+    /// Does NOT write a CRLF nor flush the stream.
+    /// This function makes a large number of small writes;
+    /// it is advised to use a buffered [`Write`] implementation here.
+    ///
+    /// [RFC1459]: https://www.rfc-editor.org/rfc/rfc1459#section-2.3
+    /// [IRCv3]: https://ircv3.net/specs/extensions/message-tags.html
+    pub fn write_to(&self, output: &mut (impl Write + ?Sized)) -> std::io::Result<()> {
+        if let Some(tags) = &self.tags {
+            let mut not_at_start = false;
+            for (key, value) in tags {
+                if not_at_start {
+                    write!(output, ";{key}")?;
+                } else {
+                    not_at_start = true;
+                    write!(output, "@{key}")?;
+                }
+                if let Some(value) = value {
+                    output.write_all(b"=")?;
+                    tag_encode(value, output)?;
+                }
+            }
+            output.write_all(b" ")?;
+        }
+
+        if let Some(source) = &self.source {
+            output.write_all(b":")?;
+            output.write_all(source)?;
+            output.write_all(b" ")?;
+        }
+
+        output.write_all(self.command.as_bytes())?;
+
+        if let Some((last, args)) = self.arguments.split_last() {
+            for arg in args {
+                output.write_all(b" ")?;
+                output.write_all(arg)?;
+            }
+            output.write_all(b" :")?;
+            output.write_all(last)?;
+        }
+        Ok(())
+    }
     #[allow(clippy::doc_markdown)]
     /// Format `self` into a byte string by [RFC1459] and [IRCv3] protocol rules.
     ///
@@ -27,40 +71,10 @@ impl Line {
     /// [IRCv3]: https://ircv3.net/specs/extensions/message-tags.html
     #[must_use]
     pub fn format(&self) -> Vec<u8> {
-        let mut output = Vec::new();
-
-        if let Some(tags) = &self.tags {
-            output.push(b'@');
-            for (i, (key, value)) in tags.iter().enumerate() {
-                if i != 0 {
-                    output.push(b';');
-                }
-
-                output.extend_from_slice(key.as_bytes());
-                if let Some(value) = value {
-                    output.push(b'=');
-                    output.extend_from_slice(tag_encode(value).as_bytes());
-                }
-            }
-            output.push(b' ');
-        }
-
-        if let Some(source) = &self.source {
-            output.push(b':');
-            output.extend_from_slice(source);
-            output.push(b' ');
-        }
-
-        output.extend_from_slice(self.command.as_bytes());
-
-        for (i, arg) in self.arguments.iter().enumerate() {
-            output.push(b' ');
-            if i == self.arguments.len() - 1 {
-                output.push(b':');
-            }
-            output.extend_from_slice(arg);
-        }
-
+        // Minimum size of a message is its command's length plus 2 bytes per argument.
+        // In practice reallocation is basically guaranteed, but this provides a starting point.
+        let mut output = Vec::with_capacity(self.command.len() + self.arguments.len() * 2);
+        std::mem::drop(self.write_to(&mut output));
         output
     }
 }
