@@ -54,7 +54,8 @@ impl Line {
     ///
     /// [RFC1459]: https://www.rfc-editor.org/rfc/rfc1459#section-2.3
     /// [IRCv3]: https://ircv3.net/specs/extensions/message-tags.html
-    pub fn tokenise(mut line: &[u8]) -> Result<Self, Error> {
+    pub fn tokenise(line: impl std::convert::AsRef<[u8]>) -> Result<Self, Error> {
+        let mut line = line.as_ref();
         let tags = if line.first() == Some(&b'@') {
             let mut tags = &line.take_word(b' ')[1..];
             let mut tags_map = BTreeMap::new();
