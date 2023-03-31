@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 /// A struct representing all the constituent pieces of an RFC1459/IRCv3 protocol line.
 ///
 /// `@tagkey=tagvalue :source COMMAND arg1 arg2 :arg3 with space`
+#[derive(Debug)]
 pub struct Line {
     /// [Message tags] of an IRC line.
     /// [`None`] if no message tags were present.
