@@ -1,7 +1,7 @@
 //! ## usage
 //!
 //! ### tokenisation
-//! 
+//!
 //! ```
 //! let bytes = b"@id=123 :jess!~jess@hostname PRIVMSG #chat :hello there!";
 //! let line = irctokens::Line::tokenise(bytes).unwrap();

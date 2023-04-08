@@ -5,7 +5,7 @@ use super::Line;
 
 const TAG_STOP: [&[u8]; 2] = [b"", b"="];
 
-#[derive(Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Error {
     /// An empty byte array was passed to the tokeniser.
     Empty,
@@ -18,6 +18,20 @@ pub enum Error {
     /// Message tag values must be utf8 encoded.
     TagValueDecode,
 }
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::Empty => write!(f, "empty slice passed to tokeniser"),
+            Error::MissingCommand => write!(f, "missing command"),
+            Error::CommandDecode => write!(f, "commands must be ascii encoded"),
+            Error::TagKeyDecode => write!(f, "message tag keys must be utf8 encoded"),
+            Error::TagValueDecode => write!(f, "message tag values must be utf8 encoded"),
+        }
+    }
+}
+
+impl std::error::Error for Error {}
 
 fn tag_decode(input: &str) -> String {
     let mut escaped = false;
@@ -54,7 +68,8 @@ impl Line {
     ///
     /// [RFC1459]: https://www.rfc-editor.org/rfc/rfc1459#section-2.3
     /// [IRCv3]: https://ircv3.net/specs/extensions/message-tags.html
-    pub fn tokenise(mut line: &[u8]) -> Result<Self, Error> {
+    pub fn tokenise(line: impl std::convert::AsRef<[u8]>) -> Result<Self, Error> {
+        let mut line = line.as_ref();
         let tags = if line.first() == Some(&b'@') {
             let mut tags = &line.take_word(b' ')[1..];
             let mut tags_map = BTreeMap::new();
